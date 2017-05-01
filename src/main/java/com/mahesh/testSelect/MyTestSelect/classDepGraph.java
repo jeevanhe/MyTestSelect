@@ -6,11 +6,16 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 
-public class classDepGraph {
-	public static void init() {
+@Mojo( name = "select-tests")
+public class classDepGraph extends AbstractMojo {
+	public static void init(String packName) {
 		jdepFile="jdeps_out";
-		packageName="com.mahesh.testSelect";
+		packageName=packName;
 		FinalTestList = new ArrayList<ClassInfo>();
 	}
 	public static void createJdepsOutFile() {
@@ -37,13 +42,58 @@ public class classDepGraph {
 
 	}
 	public static String jdepFile="jdeps_out";
-	public static String packageName="com.mahesh.testSelect";
+	@Parameter( property = "select-tests.packname", defaultValue = "MaheshExample.Test" )
+	private String packname;
+	public static String packageName;
 	public static ArrayList<ClassInfo> FinalTestList;
+	public void execute() throws MojoExecutionException
+    {
+//		System.out.println("classDepGraph : GOT ARGS: "+args.length+" arg1 is:"+args[0]+":");
+		getLog().info("MyTestSelect : starting MyTestSelect tool");
+		getLog().info("MyTestSelect : Initializing file names and parameters");
+		classDepGraph.init(this.packname);
+		if (classDepGraph.packageName.startsWith("Mahesh")) {
+			getLog().info("ERROR in MyTestSelect : Package name not initialized properly! Exiting now");
+			return;
+		}
+		getLog().info("MyTestSelect : Initializing with package name : "+classDepGraph.packageName);
+		//create a new jdeps out file
+		getLog().info("MyTestSelect : Create a new jdeps out file");
+		classDepGraph.createJdepsOutFile();
+		//check if JDeps has been executed
+		//link class info classes
+		getLog().info("MyTestSelect : Linking class nodes to form a dependency graph");
+		classDepGraph.linkInfoNodes();
+		//check for changes and start marking tests for execution
+		getLog().info("MyTestSelect : Check for changes and start marking tests for execution");
+		ClassNode.getRootClassNode().checkForChanges();
+		//flush all hashes back to disk
+		getLog().info("MyTestSelect : Flushing new hashes for next run");
+		ClassNode.flushHashesToFile();
+		getLog().info("MyTestSelect : Number of tests shortlisted for next run is : "+classDepGraph.FinalTestList.size());
+		getLog().info("MyTestSelect : command to execute : ");
+		if (classDepGraph.FinalTestList.size()==0) {
+			getLog().info("None");
+		} else {
+			StringBuilder sb = new StringBuilder();
+			sb.append("mvn test ");
+			for (int i =0; i<classDepGraph.FinalTestList.size(); i++){
+				ClassInfo temp =classDepGraph.FinalTestList.get(i);
+				if (i==0) {
+					sb.append("-Dtest="+temp.className+",");
+				} else {
+					sb.append(temp.className+",");
+				}
+			}
+			getLog().info(sb.toString());
+		}
+        getLog().info( "MyTestSelect: Done. Exiting now" );
+    }
 	public static void main (String[] args) {
 //		System.out.println("classDepGraph : GOT ARGS: "+args.length+" arg1 is:"+args[0]+":");
 		System.out.println("classDepGraph : starting MyTestSelect tool");
 		System.out.println("classDepGraph : Initializing file names and parameters");
-		classDepGraph.init();
+		classDepGraph.init("com.mahesh.testSelect");
 		classDepGraph.packageName="com.mahesh.testSelect";
 		//create a new jdeps out file
 		System.out.println("classDepGraph : Create a new jdeps out file");
