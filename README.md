@@ -4,11 +4,15 @@
 # I have not been able to manipulate the surefire plugin to only run these tests using a custom runner
 
 1. Download the source code using git pull
+
 2. In the MyTestSelect folder on your machine, run "mvn install" to generate the jar required for next steps
+
 3. Copy "MyTestSelect-maven-plugin-1.0-SNAPSHOT.jar" from MyTestSelect/target/ folder to the target-proj-folder
+
 4. Make the following changes to the pom.xml in the target-proj-folder
-	<---------Changes to target project's pom.xml------------->
-	<-----add the following lines------->
+
+#	<---------Changes to target project's pom.xml------------->
+#	<-----add the following lines------->
 	<plugin>
         <groupId>com.mahesh.testSelect</groupId>
         <artifactId>MyTestSelect-maven-plugin</artifactId>
@@ -26,7 +30,7 @@
           <packname>org.apache.commons.dbutils</packname>
         </configuration>  
       </plugin>
-      <-----ensure id 2-test as id under maven surefire plugin------->
+#      <-----ensure id 2-test as id under maven surefire plugin------->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
